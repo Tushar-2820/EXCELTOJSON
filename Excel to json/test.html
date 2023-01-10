@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.min.js"></script>
+  </head>
+
+  <body>
+    <input type="file" id="file_upload" />
+    <button onclick="upload()">Upload</button>
+    <script>
+      function upload() {
+        var files = document.getElementById("file_upload").files;
+        if (files.length == 0) {
+          alert("Please choose a file...");
+          return;
+        }
+        var filename = files[0].name;
+        var extension = filename.substring(filename.lastIndexOf("."));
+
+        if (extension == ".xls" || extension == ".xlsx") {
+          //Here calling another method to read excel file into json
+          excelFileToJSON(files[0]);
+          console.log("uploaded");
+        } else {
+          alert("Please select a valid excel file.");
+        }
+      }
+
+      function excelFileToJSON(file) {
+        try {
+          var reader = new FileReader();
+          reader.readAsBinaryString(file);
+          reader.onload = function (e) {
+            var data = e.target.result;
+            var workbook = XLSX.read(data, {
+              type: "binary",
+            });
+            var result = {};
+            var firstSheetName = workbook.SheetNames[0];
+            //reading only first sheet data
+            var jsonData = XLSX.utils.sheet_to_json(
+              workbook.Sheets[firstSheetName]
+            );
+
+            console.log(jsonData);
+
+            var output = [];
+
+            for (let i = 0; i < jsonData.length; i++) {
+              var arr = [];
+
+              var cmsID = { CmsId: jsonData[i]["Cmsid"] };
+
+              arr.push(cmsID);
+              var key = Object.keys(jsonData[i]); // to access objects
+              var value = Object.values(jsonData[i]); //to access values
+
+              for (let j = 0; j < key.length - 1; j++) {
+                var text = "external_icon_";
+
+                var object = {
+                  id: text.concat(key[j].charAt(0)),
+                  name: key[j].slice(2),
+                  defaultProperties: {
+                    color: {
+                      backgroundColor: "#C4B6D1",
+                      themeColor: "#C4B6D1",
+                      textColor: "#1B355E",
+                    },
+                    enabled: true,
+                    onClick: {
+                      target: "2",
+                      parameter: value[j],
+                    },
+                  },
+                };
+
+                arr.push(object);
+              }
+
+              // output[value[6]] = arr;
+              output.push(arr);
+
+              arr = [];
+            }
+            console.log(JSON.stringify(output));
+
+            let file = "guidelines.json";
+            var guidelineData;
+
+            fetch(file)
+              .then((x) => x.json())
+              .then((y) => {
+                for (let i = 0; i < y.length; i++) {
+                  for (let j = 0; j < output.length; j++) {
+                    var valueout = Object.values(output[j][0]);
+                    // console.log(valueout[0]);
+                    if (y[i]["cmsId"] == valueout[0]) {
+                      console.log(y[i]["cmsId"]);
+
+                      y[i]["extraIconsList"] = output[j];
+                      console.log(i);
+                    }
+                  }
+                }
+                console.log(y[3]);
+              });
+          };
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    </script>
+  </body>
+</html>

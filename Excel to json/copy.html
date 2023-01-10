@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.min.js"></script>
+</head>
+
+<body>
+    <input type="file" id="file_upload" />
+    <button onclick="upload()">Upload</button>
+    <script>
+        function upload() {
+            var files = document.getElementById("file_upload").files;
+            if (files.length == 0) {
+                alert("Please choose a file...");
+                return;
+            }
+            var filename = files[0].name;
+            var extension = filename.substring(filename.lastIndexOf("."));
+
+            if (extension == ".xls" || extension == ".xlsx") {
+                //Here calling another method to read excel file into json
+                excelFileToJSON(files[0]);
+                console.log("uploaded");
+            } else {
+                alert("Please select a valid excel file.");
+            }
+        }
+
+
+        function excelFileToJSON(file) {
+            try {
+                var reader = new FileReader();
+                reader.readAsBinaryString(file);
+                reader.onload = function (e) {
+
+                    var data = e.target.result;
+                    var workbook = XLSX.read(data, {
+                        type: 'binary'
+                    });
+                    var result = {};
+                    var firstSheetName = workbook.SheetNames[0];
+                    //reading only first sheet data
+                    var jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+                    
+                    console.log(jsonData);
+                    // console.log(jsonData[1]);
+                  
+
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+    </script>
+ <div class="legend">
+    <img src="" alt="" width="100%">
+ </div>
+
+<div class="outer">
+    <div class="box">For interactivity <a href="interactive_0003650.html">see here</a></div>
+    </div>
+
+
+    
+
+</body>
+
+</html>
